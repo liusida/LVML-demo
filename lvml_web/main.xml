@@ -4,12 +4,13 @@
         style_pad_all="0"
         style_margin_all="0"
         style_border_width="0">
-        <lv_button x="100" y="100"
+        <lv_label y="-40" text="Dictionary" align="center" />
+        <lv_button x="100" y="130"
             width="120" height="40"
             style_bg_color="0x007AFF"
             style_radius="8">
-            <lv_label text="Next" style_text_color="0xFFFFFF" align="center" />
-            <lv_event-call_function trigger="clicked" callback="load_screen" user_data="step1.xml"/>
+            <lv_label text="Enter" style_text_color="0xFFFFFF" align="center" />
+            <lv_event-call_function trigger="clicked" callback="load_screen" user_data="dictionary/splash.xml"/>
         </lv_button>
     </view>
 </component>

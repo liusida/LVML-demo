@@ -1,71 +1,22 @@
 #include <Arduino.h>
-#include <HTTPClient.h>
 #include <lvgl.h>
-#include <WiFi.h>
 
 #include "GT911.h"
 #include "TFT_eSPI.h"
-#include "misc/lv_types.h"
-#include "others/xml/lv_xml_component.h"
 
 #include "WifiConfig.h"
+#include "lvml.h"
 
 const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
-String loadXMLFromURL(const char *url);
 
-const char* server_url = "http://192.168.1.164:8866/";
 TFT_eSPI tft;
 GT911 gt911;
-
-// Global variable to store the current UI object
-lv_obj_t *current_ui = NULL;
-
-// Generic screen loading callback function
-static void load_screen(lv_event_t * e) {
-  const char * target_screen = (const char *)lv_event_get_user_data(e);
-  if (!target_screen) {
-    Serial.println("No target screen specified!");
-    return;
-  }
-  
-  Serial.printf("Loading screen: %s\n", target_screen);
-  
-  // Construct the full URL for the target screen
-  String fullUrl = server_url + String(target_screen);
-  
-  // Load the target XML from server
-  String xmlContent = loadXMLFromURL(fullUrl.c_str());
-  if (xmlContent.length() > 0) {
-    // Generate a unique name for the component
-    static int screen_counter = 0;
-    String component_name = "screen_" + String(screen_counter++);
-    
-    // Register the new component
-    lv_xml_component_register_from_data(component_name.c_str(), xmlContent.c_str());
-    
-    // Remove the current UI
-    if (current_ui) {
-      lv_obj_del(current_ui);
-    }
-    
-    // Create the new UI
-    current_ui = (lv_obj_t *)lv_xml_create(lv_scr_act(), component_name.c_str(), NULL);
-    if (current_ui) {
-      Serial.printf("Screen %s loaded successfully!\n", target_screen);
-    } else {
-      Serial.printf("Failed to create screen %s\n", target_screen);
-    }
-  } else {
-    Serial.printf("Failed to load %s from server\n", target_screen);
-  }
-}
+LVML lvml;
 
 #define BUF_ROWS 120
 static lv_color_t *buf1 = NULL; // Primary buffer (will be allocated in PSRAM)
 static lv_color_t *buf2 = NULL; // Secondary buffer (will be allocated in PSRAM)
-
-// LVGL Display Driver (not needed in 9.3 - we'll use lv_display_t directly)
 
 // Tick callback function for LVGL
 static uint32_t my_tick(void) { return millis(); }
@@ -93,20 +44,6 @@ void touch_read_cb(lv_indev_t *indev, lv_indev_data_t *data) {
   }
 }
 
-// Function to load XML from LittleFS
-String loadXMLFromURL(const char *url) {
-  HTTPClient http;
-  http.begin(url);
-  int httpCode = http.GET();
-  if (httpCode != HTTP_CODE_OK) {
-    Serial.printf("HTTP GET failed, error: %s\n", http.errorToString(httpCode).c_str());
-    return "";
-  }
-  String xmlContent = http.getString();
-  http.end();
-  return xmlContent;
-}
-
 void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
   uint32_t w = (area->x2 - area->x1 + 1);
   uint32_t h = (area->y2 - area->y1 + 1);
@@ -128,7 +65,7 @@ void setup() {
   delay(1000);
 
   Serial.println("Starting...");
-  Serial.println("Build timestamp: " + String(BUILD_TIMESTAMP));
+  Serial.println("Build timestamp: " + String(__DATE__) + " " + String(__TIME__));
 
   // Connect to WiFi
   Serial.println("Connecting to WiFi...");
@@ -188,23 +125,8 @@ void setup() {
   String xmlContent = "";
  
   Serial.printf("Loading main.xml...\n");
-  xmlContent = loadXMLFromURL((String(server_url) + "main.xml").c_str());
-  if (xmlContent.length() > 0) {
-    lv_xml_component_register_from_data("main_ui", xmlContent.c_str());
-    
-    // Register the event callback for screen loading
-    lv_xml_register_event_cb(NULL, "load_screen", load_screen);
-    
-  } else {
-    Serial.println("Failed to load XML from URL");
-  }
-
-  current_ui = (lv_obj_t *)lv_xml_create(lv_scr_act(), "main_ui", NULL);
-  if (current_ui) {
-    Serial.println("XML UI created successfully from URL!");
-  } else {
-    Serial.println("Failed to create XML UI");
-  }
+  lvml.begin();
+  lvml.loadScreenUrl("http://192.168.1.105:8866/main.xml");
   
 }
 
