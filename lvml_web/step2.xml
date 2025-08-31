@@ -5,22 +5,36 @@
         style_border_width="0">
     <!-- Colored background panel with button inside -->
     <lv_obj x="0" y="0" width="320" height="240" 
-            style_bg_color="0x222266" 
+            style_bg_color="0x662222" 
             style_radius="0"
             style_pad_all="0" >
-      <lv_button x="50" y="100" 
+      
+      <!-- Title label -->
+      <lv_label x="110" y="50" text="Step 2" style_text_color="0xFFFFFF" />
+      
+      <!-- Navigation buttons -->
+      <lv_button x="30" y="100" 
                  width="80" height="40"
                  style_bg_color="0x007AFF" 
                  style_radius="8">
-        <lv_label text="Main" style_text_color="0xFFFFFF" align="center"/>
+        <lv_label text="Back" style_text_color="0xFFFFFF" align="center"/>
+        <lv_event-call_function trigger="clicked" callback="load_screen" user_data="step1.xml"/>
+      </lv_button>
+      
+      <lv_button x="120" y="100" 
+                 width="80" height="40"
+                 style_bg_color="0x007AFF" 
+                 style_radius="8">
+        <lv_label text="Home" style_text_color="0xFFFFFF" align="center"/>
         <lv_event-call_function trigger="clicked" callback="load_screen" user_data="main.xml"/>
       </lv_button>
-      <lv_button x="190" y="100" 
+      
+      <lv_button x="210" y="100" 
                  width="80" height="40"
                  style_bg_color="0x007AFF" 
                  style_radius="8">
         <lv_label text="Next" style_text_color="0xFFFFFF" align="center"/>
-        <lv_event-call_function trigger="clicked" callback="load_screen" user_data="step2.xml"/>
+        <lv_event-call_function trigger="clicked" callback="load_screen" user_data="step3.xml"/>
       </lv_button>
 
     </lv_obj>

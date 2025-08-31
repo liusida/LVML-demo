@@ -14,21 +14,35 @@ const char* ssid = WIFI_SSID;
 const char* password = WIFI_PASSWORD;
 String loadXMLFromURL(const char *url);
 
+const char* server_url = "http://192.168.1.164:8866/";
 TFT_eSPI tft;
 GT911 gt911;
 
 // Global variable to store the current UI object
 lv_obj_t *current_ui = NULL;
 
-// Event callback function for the Next button
-static void next_button_click_handler(lv_event_t * e) {
-  Serial.println("Next button clicked! Loading step1.xml...");
+// Generic screen loading callback function
+static void load_screen(lv_event_t * e) {
+  const char * target_screen = (const char *)lv_event_get_user_data(e);
+  if (!target_screen) {
+    Serial.println("No target screen specified!");
+    return;
+  }
   
-  // Load step1.xml from server
-  String xmlContent = loadXMLFromURL("http://192.168.1.164:8866/step1.xml");
+  Serial.printf("Loading screen: %s\n", target_screen);
+  
+  // Construct the full URL for the target screen
+  String fullUrl = server_url + String(target_screen);
+  
+  // Load the target XML from server
+  String xmlContent = loadXMLFromURL(fullUrl.c_str());
   if (xmlContent.length() > 0) {
+    // Generate a unique name for the component
+    static int screen_counter = 0;
+    String component_name = "screen_" + String(screen_counter++);
+    
     // Register the new component
-    lv_xml_component_register_from_data("step1_ui", xmlContent.c_str());
+    lv_xml_component_register_from_data(component_name.c_str(), xmlContent.c_str());
     
     // Remove the current UI
     if (current_ui) {
@@ -36,14 +50,14 @@ static void next_button_click_handler(lv_event_t * e) {
     }
     
     // Create the new UI
-    current_ui = (lv_obj_t *)lv_xml_create(lv_scr_act(), "step1_ui", NULL);
+    current_ui = (lv_obj_t *)lv_xml_create(lv_scr_act(), component_name.c_str(), NULL);
     if (current_ui) {
-      Serial.println("Step1 UI created successfully!");
+      Serial.printf("Screen %s loaded successfully!\n", target_screen);
     } else {
-      Serial.println("Failed to create Step1 UI");
+      Serial.printf("Failed to create screen %s\n", target_screen);
     }
   } else {
-    Serial.println("Failed to load step1.xml from server");
+    Serial.printf("Failed to load %s from server\n", target_screen);
   }
 }
 
@@ -173,13 +187,13 @@ void setup() {
   // Load XML from LittleFS and register component
   String xmlContent = "";
  
-  Serial.println("Loading http://192.168.1.164:8866/main.xml...");
-  xmlContent = loadXMLFromURL("http://192.168.1.164:8866/main.xml");
+  Serial.printf("Loading main.xml...\n");
+  xmlContent = loadXMLFromURL((String(server_url) + "main.xml").c_str());
   if (xmlContent.length() > 0) {
     lv_xml_component_register_from_data("main_ui", xmlContent.c_str());
     
-    // Register the event callback for the Next button
-    lv_xml_register_event_cb(NULL, "next_button_click_handler", next_button_click_handler);
+    // Register the event callback for screen loading
+    lv_xml_register_event_cb(NULL, "load_screen", load_screen);
     
   } else {
     Serial.println("Failed to load XML from URL");
