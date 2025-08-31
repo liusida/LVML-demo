@@ -4,6 +4,8 @@
 
 **LVML** is a powerful combination of **LVGL XML Component System** and **web server integration** that revolutionizes embedded UI development. This approach enables dynamic UI updates without firmware recompilation by loading UI definitions from web servers at runtime.
 
+![Demo](images/demo.png)
+
 ## 🎯 The LVML Concept
 
 LVML combines the best of both worlds:
